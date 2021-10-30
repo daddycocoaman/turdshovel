@@ -50,7 +50,7 @@ Turdshovel uses [Nubia](https://github.com/facebookincubator/python-nubia) as it
 
 <details>
 <summary>load</summary>
-The `load` command takes the path to the file dump as an argument.
+The load command takes the path to the file dump as an argument.
 
 <p align='center'><img src='docs/images/loadcommand.png' alt='load command' height="700"/></p>
 
@@ -79,8 +79,8 @@ Similar to the dump obj command via [SOS](https://docs.microsoft.com/en-us/dotne
 
 <details>
 <summary>dump mem</summary>
-Prints the bytes at the location specified for the amount of bytes specified. This is useful when objects point to locations in memory that are not objects, such as encrypted data, or just seeing what is around any given memory address. The example shows a simple string which you *could* find with the `strings` command but there are better use cases, specifically with pointers!
-<br><br>
+Prints the bytes at the location specified for the amount of bytes specified. This is useful when objects point to locations in memory that are not objects, such as encrypted data, or just seeing what is around any given memory address. The example shows a simple string which you could find with the strings command but there are better use cases, specifically with pointers!
+
 <p align='center'><img src='docs/images/dumpmem.png' alt='dump meme'/></p>
 
 
