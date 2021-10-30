@@ -6,6 +6,10 @@ from Microsoft.Diagnostics.Runtime import ClrElementType
 from rich import inspect, print
 
 
+def _remove_backing_field_string(name):
+    return name[1 : name.index(">")] if "k__backingfield" in name.lower() else name
+
+
 def _convert_basic_fields(obj, element_type):
     if element_type == ClrElementType.String:
         return obj.AsString()
@@ -128,7 +132,8 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
 
             if key_type := key_obj.get_Type():
                 for sub_field in key_type.Fields:
-                    key_data[sub_field.Name] = _iter_field(
+                    sub_field_name = _remove_backing_field_string(sub_field.Name)
+                    key_data[sub_field_name] = _iter_field(
                         runtime, key_obj, sub_field, visited_objects
                     )
             else:
@@ -141,18 +146,14 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
 
             if type_ := value_obj.get_Type():
                 for sub_field in type_.Fields:
-                    value_data[sub_field.Name] = _iter_field(
+                    sub_field_name = _remove_backing_field_string(sub_field.Name)
+                    value_data[sub_field_name] = _iter_field(
                         runtime, value_obj, sub_field, visited_objects
                     )
-
-                # value_readable = _convert_basic_fields(
-                #     value_obj, element_type=type_.get_ElementType()
-                # )
 
             field_data.append(
                 {
                     "key": key_data,
-                    # "value_as_string": value_readable,
                     "value": value_data,
                 }
             )
@@ -206,7 +207,10 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
                                     )
                         else:
                             for sub_field in sub_obj.Type.Fields:
-                                field_data[sub_field.Name] = _iter_field(
+                                sub_field_name = _remove_backing_field_string(
+                                    sub_field.Name
+                                )
+                                field_data[sub_field_name] = _iter_field(
                                     runtime, sub_obj, sub_field, visited_objects
                                 )
 
@@ -239,7 +243,8 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
                 field_data = {}
                 value_obj = obj.ReadValueTypeField(field.Name)
                 for sub_field in value_obj.get_Type().Fields:
-                    field_data[sub_field.Name] = _iter_field(
+                    sub_field_name = _remove_backing_field_string(sub_field.Name)
+                    field_data[sub_field_name] = _iter_field(
                         runtime, value_obj, sub_field, visited_objects
                     )
 
@@ -255,7 +260,8 @@ def parse_obj(runtime, obj, console) -> Dict:
 
     try:
         for field in obj.Type.Fields:
-            output[field.Name] = _iter_field(runtime, obj, field, visited_objects)
+            field_name = _remove_backing_field_string(field.Name)
+            output[field_name] = _iter_field(runtime, obj, field, visited_objects)
 
         return output
     except RecursionError:
