@@ -89,6 +89,6 @@ Prints the bytes at the location specified for the amount of bytes specified. Th
 <br><br>
 # Built With
 - [Python-Nubia](https://github.com/facebookincubator/python-nubia) - CLI Framework
-- Python.NET - Python/C# Interop
+- [Python.NET](https://github.com/pythonnet/pythonnet) - Python/C# Interop
 - [ClrMD](https://github.com/microsoft/clrmd) - .NET Diagnostics Library
 - [Rich](https://github.com/willmcgugan/rich) - Amazing text, highlighting, and formatting
