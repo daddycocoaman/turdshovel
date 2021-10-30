@@ -10,29 +10,31 @@ def _remove_backing_field_string(name):
     return name[1 : name.index(">")] if "k__backingfield" in name.lower() else name
 
 
-def _convert_basic_fields(obj, element_type):
-    if element_type == ClrElementType.String:
+def _convert_basic_fields(obj):
+    element_type = str(obj.get_Type())
+    if element_type in ["System.String", "System.Char"]:
         return obj.AsString()
-    elif element_type == ClrElementType.Boolean:
+    elif element_type == "System.Boolean":
         return bool(obj)
 
     elif element_type in [
-        ClrElementType.Int8,
-        ClrElementType.Int16,
-        ClrElementType.Int32,
-        ClrElementType.Int64,
-        ClrElementType.UInt8,
-        ClrElementType.UInt16,
-        ClrElementType.UInt32,
-        ClrElementType.UInt64,
+        "System.Byte",
+        "System.Int16",
+        "System.Int32",
+        "System.Int64",
+        "System.UInt16",
+        "System.UInt32",
+        "System.UInt64",
     ]:
         return int(obj)
-    elif element_type in [ClrElementType.Float, ClrElementType.Double]:
+    elif element_type in ["System.Decimal", "System.Double"]:
         return float(obj)
-    elif element_type == ClrElementType.Pointer:
+    elif element_type == "System.IntPtr":
         return hex(obj.ToInt64())
+    elif element_type == "System.UIntPtr":
+        return hex(obj.ToUInt64())
     else:
-        return repr(obj)
+        return None
 
 
 def _check_basic_fields(obj, field, element_type=None):
@@ -43,9 +45,10 @@ def _check_basic_fields(obj, field, element_type=None):
         element_type = field.get_ElementType()
 
     field_data = None
-    if element_type == ClrElementType.String:
+    if element_type in [ClrElementType.String]:
         field_data = obj.ReadStringField(field.Name)
-
+    elif element_type in [ClrElementType.Char]:
+        field_data = obj.ReadField[System.Char](field.Name)
     elif element_type == ClrElementType.Boolean:
         field_data = obj.ReadField[bool](field.Name)
 
@@ -123,7 +126,6 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
             entry = field.GetStructValue(idx)
 
             key_data = {}
-            value_data = {}
 
             try:
                 key_obj = entry.ReadValueTypeField("key")
@@ -140,16 +142,20 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
                 key_data = key_obj
 
             try:
-                value_obj = entry.ReadValueTypeField("value")
-            except:
                 value_obj = entry.ReadObjectField("value")
+            except:
+                value_obj = entry.ReadValueTypeField("value")
 
-            if type_ := value_obj.get_Type():
-                for sub_field in type_.Fields:
-                    sub_field_name = _remove_backing_field_string(sub_field.Name)
-                    value_data[sub_field_name] = _iter_field(
-                        runtime, value_obj, sub_field, visited_objects
-                    )
+            value_data = _convert_basic_fields(value_obj)
+            if not value_data:
+                value_data = {}
+
+                if type_ := value_obj.get_Type():
+                    for sub_field in type_.Fields:
+                        sub_field_name = _remove_backing_field_string(sub_field.Name)
+                        value_data[sub_field_name] = _iter_field(
+                            runtime, value_obj, sub_field, visited_objects
+                        )
 
             field_data.append(
                 {
@@ -163,8 +169,7 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
         field_data = _check_basic_fields(obj, field)
 
         # If it's not basic, be complex
-        if not field_data:
-
+        if field_data is None:
             if element_type in [ClrElementType.Class, ClrElementType.Object]:
                 field_data = {}
                 sub_obj = runtime.Heap.GetObject(
@@ -216,7 +221,7 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
 
                     # If we get here, try to parse as a basic type. If not, then we need additional logic for element type
                     else:
-                        field_data = _convert_basic_fields(sub_obj, element_type)
+                        field_data = _convert_basic_fields(sub_obj)
                         if not field_data:
                             inspect(ClrElementType)
                             inspect(sub_obj, all=True)
