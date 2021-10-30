@@ -1,4 +1,3 @@
-from re import escape
 import time
 from typing import List
 
@@ -115,6 +114,8 @@ class Dump:
         self.console.print(f"Hex: ", output_str)
         self.console.print(f"Bytes: ", bytes.fromhex(output_str))
         try:
-            self.console.print(f"ASCII: ", bytes.fromhex(output_str).decode(), highlight=False)
+            self.console.print(
+                f"ASCII: ", bytes.fromhex(output_str).decode(), highlight=False
+            )
         except:
             pass
