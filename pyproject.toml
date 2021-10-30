@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "turdshovel"
+version = "0.1"
+description = "Looks through memory dumps for secrets"
+authors = ["Leron Gray"]
+license = "MIT"
+classifiers = [
+    "Operating System :: Microsoft :: Windows",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8.0, <3.9"
+pythonnet = "^2.5.2"
+rich = "^10.12.0"
+python-nubia = "^0.2b5"
+numpy = "^1.21.2"
+orjson = "^3.6.4"
+pyparsing = "2.4.7"
+
+[tool.poetry.dev-dependencies]
+black = "^21.9b0"
+isort = "^5.9.3"
+mkdocs = "^1.2.3"
+mkdocs-material = "^7.3.5"
+
+[tool.poetry.scripts]
+turdshovel = "turdshovel.main:init"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

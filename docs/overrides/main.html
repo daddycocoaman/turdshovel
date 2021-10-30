@@ -1,0 +1,59 @@
+<!-- Template from https://github.com/rohancragg/blog-notes/blob/main/theme/main.html -->
+{% extends "base.html" %}
+
+{% block extrahead %}
+
+<meta property="og:url" content="{{ page.canonical_url }}" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:site" content="@mcohmi" />
+<meta property="twitter:creator" content="@mcohmi" />
+
+{% if page and page.meta and page.meta.meta_title %}
+<meta property="og:title" content="{{ page.meta.meta_title }}" />
+<meta property="twitter:title" content="{{ page.meta.meta_title }}" />
+
+{% elif page and page.meta and page.meta.title %}
+<meta property="og:title" content="{{ page.meta.title }}" />
+<meta property="twitter:title" content="{{ page.meta.title }}" />
+{% else %}
+<meta property="og:title" content="{{ page.title }}" />
+<meta property="twitter:title" content="{{ page.title }}" />
+{% endif %}
+
+{% if page and page.meta and page.meta.meta_type %}
+<meta property="og:type" content="{{ page.meta.meta_type }}" />
+{% else %}
+<meta property="og:type" content="website" />
+{% endif %}
+
+
+{% if page and page.meta and page.meta.page_path and page.meta.meta_image %}
+<meta property="og:image:url" content="{{ config.site_url ~ page.meta.page_path ~ page.meta.meta_image }}" />
+<meta property="twitter:image" content="{{ config.site_url ~ page.meta.page_path ~ page.meta.meta_image }}" />
+{% elif page and page.meta and page.meta.meta_image %}
+<meta property="og:image:url" content="{{ page.meta.meta_image }}" />
+<meta property="twitter:image" content="{{ page.meta.meta_image }}" />
+{% else %}
+<meta property="og:image:url" content="{{ config.site_url ~ config.theme.favicon }}" />
+<meta property="twitter:image" content="{{ config.site_url ~ config.theme.favicon }}" />
+{% endif %}
+
+{% if page and page.meta and page.meta.meta_image_type %}
+<meta property="og:image:type" content="{{ page.meta.meta_image_type}}" />
+{% else %}
+<meta property="og:image:type" content="image/png" />
+{% endif %}
+
+{% if page and page.meta and page.meta.description %}
+<meta property="og:description" content="{{ page.meta.description }}">
+<meta property="twitter:description" content="{{ page.meta.description }}">
+{% elif page and page.description %}
+<meta property="og:description" content="{{ page.description }}">
+<meta property="twitter:description" content="{{ page.description }}">
+{% elif config.site_description %}
+<meta property="og:description" content="{{ config.site_description }}">
+<meta property="twitter:description" content="{{ config.site_description }}">
+{% endif %}
+
+<meta property="og:locale" content="en-US" />
+{% endblock %}
