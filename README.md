@@ -1,7 +1,12 @@
 # Turdshovel
 
 
-<p align='center'><img src='https://github.com/daddycocoaman/turdshovel/raw/main/docs/images/logo.png' alt='logo' height="400"/></p>
+<p align='center'><img src='https://github.com/daddycocoaman/turdshovel/raw/main/docs/images/logo.png' alt='logo' height="400"/><br>
+    <img src="https://img.shields.io/pypi/v/turdshovel?style=plastic&color=blueviolet"/>
+    <img src="https://img.shields.io/pypi/pyversions/turdshovel?style=plastic&color=critical"/>
+    <img src="https://img.shields.io/pypi/l/turdshovel?style=plastic&color=success"/>
+    <a href="https://twitter.com/mcohmi"><img src="https://img.shields.io/twitter/follow/mcohmi.svg?style=plastic&color=informational"/></a><br>
+</p>
 
 # Description
 
