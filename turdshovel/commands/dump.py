@@ -1,4 +1,3 @@
-from re import escape
 import time
 from typing import List
 
@@ -74,6 +73,8 @@ class Dump:
 
         address = int(address, 16)
         obj = self.runtime.Heap.GetObject(address)
+
+        # We only care about valid objects and non-Free objects
         if obj.IsValid and not obj.IsFree:
             if obj.IsArray:
                 output = []
@@ -85,13 +86,17 @@ class Dump:
             else:
                 output = parse_obj(self.runtime, obj, self.console)
 
+            output = orjson.dumps(output, default=lambda x: repr(x))
             if save:
                 filename = f"{self.ctx.target_friendly_name}_{address}_{time.strftime('%Y%m%d-%H%M%S')}.json"
                 with open(filename, "wb") as save_file:
-                    save_file.write(orjson.dumps(output, default=lambda x: repr(x)))
+                    save_file.write(output)
                 self.console.print(f"[green bold]Output saved to {filename}")
             else:
-                self.console.print(output)
+                try:
+                    self.console.print_json(output.decode())
+                except:
+                    self.console.print(output)
 
     @command
     @argument(
@@ -115,6 +120,8 @@ class Dump:
         self.console.print(f"Hex: ", output_str)
         self.console.print(f"Bytes: ", bytes.fromhex(output_str))
         try:
-            self.console.print(f"ASCII: ", bytes.fromhex(output_str).decode(), highlight=False)
+            self.console.print(
+                f"ASCII: ", bytes.fromhex(output_str).decode(), highlight=False
+            )
         except:
             pass

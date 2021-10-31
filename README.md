@@ -50,7 +50,8 @@ Turdshovel uses [Nubia](https://github.com/facebookincubator/python-nubia) as it
 
 <details>
 <summary>load</summary>
-The load command takes the path to the file dump as an argument.
+
+The `load` command takes the path to the file dump as an argument.
 
 <p align='center'><img src='docs/images/loadcommand.png' alt='load command' height="700"/></p>
 
@@ -67,13 +68,14 @@ Similar to the dump heap command via [SOS](https://docs.microsoft.com/en-us/dotn
 
 <details>
 <summary>dump obj</summary>
+
 Similar to the dump obj command via [SOS](https://docs.microsoft.com/en-us/dotnet/core/diagnostics/sos-debugging-extension), this command will dump all of the non-static fields of the object on the heap in JSON representation. You can also pass `save=True` to save the resulting JSON to disk.
 <br><br>
 
-**IMPORTANT:** When dumping a complex object, you may noticed fields represented by `Microsoft.Diagnostics.Runtime.Implementation.ClrmdField`. This is because I was trying to avoid recursion and this is a temporary. What it means is that this field has been visited before, and in order to avoid recursion limit errors for self-referencing objects or other other objects that would cause a loop, I just used the `repr` of the object as Python sees it. This is a **temporary solution** and will be addressed in a future release.
+**IMPORTANT:** When dumping a complex object, you may noticed fields `<!>`. This indicates that the field would have caused a recursion error to occur so Turdshovel did not parse the field. This usually occurs with objects that reference themselves.
 
-<p align='center'><img src='docs/images/dumpobj1.png' alt='dump heap 1' width="1100"/></p>
-<p align='center'><img src='docs/images/dumpobj2.png' alt='dump heap 2' width="1100"/></p>
+<p align='center'><img src='docs/images/dumpobj1.png' alt='dump obj 1' width="1100"/></p>
+<p align='center'><img src='docs/images/dumpobj2.png' alt='dump obj 2' width="1100"/></p>
 
 </details>
 
@@ -81,14 +83,18 @@ Similar to the dump obj command via [SOS](https://docs.microsoft.com/en-us/dotne
 <summary>dump mem</summary>
 Prints the bytes at the location specified for the amount of bytes specified. This is useful when objects point to locations in memory that are not objects, such as encrypted data, or just seeing what is around any given memory address. The example shows a simple string which you could find with the strings command but there are better use cases, specifically with pointers!
 
-<p align='center'><img src='docs/images/dumpmem.png' alt='dump meme'/></p>
+<p align='center'><img src='docs/images/dumpmem.png' alt='dump mem'/></p>
 
 
 </details>
+<br>
 
-<br><br>
 # Built With
 - [Python-Nubia](https://github.com/facebookincubator/python-nubia) - CLI Framework
 - [Python.NET](https://github.com/pythonnet/pythonnet) - Python/C# Interop
 - [ClrMD](https://github.com/microsoft/clrmd) - .NET Diagnostics Library
 - [Rich](https://github.com/willmcgugan/rich) - Amazing text, highlighting, and formatting
+<br>
+
+# Special Thanks
+- [Steve Dower](https://twitter.com/zooba) - Helped fixed the recursion issue!

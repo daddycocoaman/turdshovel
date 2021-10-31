@@ -6,29 +6,37 @@ from Microsoft.Diagnostics.Runtime import ClrElementType
 from rich import inspect, print
 
 
-def _convert_basic_fields(obj, element_type):
-    if element_type == ClrElementType.String:
+def _remove_backing_field_string(name):
+    return name[1 : name.index(">")] if "k__backingfield" in name.lower() else name
+
+
+def _convert_basic_fields(obj):
+
+    # Had to convert the type to string here for matching. Wild.
+    element_type = str(obj.get_Type())
+    if element_type in ["System.String", "System.Char"]:
         return obj.AsString()
-    elif element_type == ClrElementType.Boolean:
+    elif element_type == "System.Boolean":
         return bool(obj)
 
     elif element_type in [
-        ClrElementType.Int8,
-        ClrElementType.Int16,
-        ClrElementType.Int32,
-        ClrElementType.Int64,
-        ClrElementType.UInt8,
-        ClrElementType.UInt16,
-        ClrElementType.UInt32,
-        ClrElementType.UInt64,
+        "System.Byte",
+        "System.Int16",
+        "System.Int32",
+        "System.Int64",
+        "System.UInt16",
+        "System.UInt32",
+        "System.UInt64",
     ]:
         return int(obj)
-    elif element_type in [ClrElementType.Float, ClrElementType.Double]:
+    elif element_type in ["System.Decimal", "System.Double"]:
         return float(obj)
-    elif element_type == ClrElementType.Pointer:
+    elif element_type == "System.IntPtr":
         return hex(obj.ToInt64())
+    elif element_type == "System.UIntPtr":
+        return hex(obj.ToUInt64())
     else:
-        return repr(obj)
+        return None
 
 
 def _check_basic_fields(obj, field, element_type=None):
@@ -39,9 +47,10 @@ def _check_basic_fields(obj, field, element_type=None):
         element_type = field.get_ElementType()
 
     field_data = None
-    if element_type == ClrElementType.String:
+    if element_type in [ClrElementType.String]:
         field_data = obj.ReadStringField(field.Name)
-
+    elif element_type in [ClrElementType.Char]:
+        field_data = obj.ReadField[System.Char](field.Name)
     elif element_type == ClrElementType.Boolean:
         field_data = obj.ReadField[bool](field.Name)
 
@@ -103,56 +112,61 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
     #                   Var = 19
     #                  Void = 1
 
-    # Also Arrays are a little harder because we should figure out the type first.
-    # Also, Check to see if we've been here before. If so, return
+    # Check to see if we've visited before in this iteration
+    # If we have, return the data
+    if visited_data := visited_objects.get(f"{obj.Address}_{field}", None):
+        return visited_data
 
-    # TODO: Figure out the best way to prevent recursion
-    if (obj.Address, field) in visited_objects:
-        return field
-    visited_objects.add(tuple((obj.Address, field)))
+    # If we haven't seen this, set the data to obj.Address.
+    # Objects that cause recursion will print out an address instead
+    visited_objects[f"{obj.Address}_{field}"] = f"<!>"
+
     if is_dict:
         field_data = []
 
-        # we have to loop this way because ClrArray object is not iterable in Python
+        # We have to loop this way because ClrArray object is not iterable in Python
         for idx in range(field.Length):
 
             entry = field.GetStructValue(idx)
 
-            key_data = {}
-            value_data = {}
+            key_data = None
+            value_data = None
 
+            ### HANDLE DICT KEY
             try:
-                key_obj = entry.ReadValueTypeField("key")
-            except:
                 key_obj = entry.ReadObjectField("key")
-
-            if key_type := key_obj.get_Type():
-                for sub_field in key_type.Fields:
-                    key_data[sub_field.Name] = _iter_field(
-                        runtime, key_obj, sub_field, visited_objects
-                    )
-            else:
-                key_data = key_obj
-
-            try:
-                value_obj = entry.ReadValueTypeField("value")
+                key_data = _convert_basic_fields(key_obj)
             except:
+                key_obj = entry.ReadValueTypeField("key")
+
+            if not key_data:
+                key_data = {}
+                if key_type := key_obj.get_Type():
+                    for sub_field in key_type.Fields:
+                        sub_field_name = _remove_backing_field_string(sub_field.Name)
+                        key_data[sub_field_name] = _iter_field(
+                            runtime, key_obj, sub_field, visited_objects
+                        )
+
+            ### HANDLE DICT VALUE
+            try:
                 value_obj = entry.ReadObjectField("value")
+                value_data = _convert_basic_fields(value_obj)
+            except:
+                value_obj = entry.ReadValueTypeField("value")
 
-            if type_ := value_obj.get_Type():
-                for sub_field in type_.Fields:
-                    value_data[sub_field.Name] = _iter_field(
-                        runtime, value_obj, sub_field, visited_objects
-                    )
-
-                # value_readable = _convert_basic_fields(
-                #     value_obj, element_type=type_.get_ElementType()
-                # )
+            if not value_data:
+                value_data = {}
+                if type_ := value_obj.get_Type():
+                    for sub_field in type_.Fields:
+                        sub_field_name = _remove_backing_field_string(sub_field.Name)
+                        value_data[sub_field_name] = _iter_field(
+                            runtime, value_obj, sub_field, visited_objects
+                        )
 
             field_data.append(
                 {
                     "key": key_data,
-                    # "value_as_string": value_readable,
                     "value": value_data,
                 }
             )
@@ -162,8 +176,7 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
         field_data = _check_basic_fields(obj, field)
 
         # If it's not basic, be complex
-        if not field_data:
-
+        if field_data is None:
             if element_type in [ClrElementType.Class, ClrElementType.Object]:
                 field_data = {}
                 sub_obj = runtime.Heap.GetObject(
@@ -206,13 +219,16 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
                                     )
                         else:
                             for sub_field in sub_obj.Type.Fields:
-                                field_data[sub_field.Name] = _iter_field(
+                                sub_field_name = _remove_backing_field_string(
+                                    sub_field.Name
+                                )
+                                field_data[sub_field_name] = _iter_field(
                                     runtime, sub_obj, sub_field, visited_objects
                                 )
 
                     # If we get here, try to parse as a basic type. If not, then we need additional logic for element type
                     else:
-                        field_data = _convert_basic_fields(sub_obj, element_type)
+                        field_data = _convert_basic_fields(sub_obj)
                         if not field_data:
                             inspect(ClrElementType)
                             inspect(sub_obj, all=True)
@@ -239,10 +255,12 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
                 field_data = {}
                 value_obj = obj.ReadValueTypeField(field.Name)
                 for sub_field in value_obj.get_Type().Fields:
-                    field_data[sub_field.Name] = _iter_field(
+                    sub_field_name = _remove_backing_field_string(sub_field.Name)
+                    field_data[sub_field_name] = _iter_field(
                         runtime, value_obj, sub_field, visited_objects
                     )
 
+    visited_objects[f"{obj.Address}_{field}"] = field_data
     return field_data
 
 
@@ -251,11 +269,12 @@ def parse_obj(runtime, obj, console) -> Dict:
     output = {}
 
     # Helps with recursion.
-    visited_objects = set()
+    visited_objects = {}
 
     try:
         for field in obj.Type.Fields:
-            output[field.Name] = _iter_field(runtime, obj, field, visited_objects)
+            field_name = _remove_backing_field_string(field.Name)
+            output[field_name] = _iter_field(runtime, obj, field, visited_objects)
 
         return output
     except RecursionError:
