@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "turdshovel"
-version = "0.1"
+version = "0.2"
 description = "Looks through memory dumps for secrets"
 authors = ["Leron Gray"]
 license = "MIT"
