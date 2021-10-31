@@ -1,12 +1,14 @@
 [tool.poetry]
 name = "turdshovel"
-version = "0.2"
+version = "0.2.1"
 description = "Looks through memory dumps for secrets"
 authors = ["Leron Gray"]
+homepage = "https://github.com/daddycocoaman/turdshovel"
 license = "MIT"
 classifiers = [
     "Operating System :: Microsoft :: Windows",
 ]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8.0, <3.9"
