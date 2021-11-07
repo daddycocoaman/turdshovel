@@ -1,8 +1,10 @@
 import sys
 from pathlib import Path
-from unicodedata import name
 
-from rich import pretty, print, traceback
+from nubia import Options
+from rich import pretty, traceback
+
+import turdshovel.commands
 
 # Add .NET assemblies to sys.path
 assembly_path = Path(__file__).parent / "_dlls"

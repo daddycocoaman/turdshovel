@@ -33,10 +33,6 @@ class Dump:
             self.console.print("[bold red] No runtime loaded! Load a dump first!")
             return
 
-        if not self.runtime.Heap.CanWalkHeap:
-            self.console.print("[bold red]ERROR: Cannot walk heap![/]")
-            return
-
         object_table = Table(border_style="#8B4513")
         object_table.add_column("Address", style="cyan")
         object_table.add_column("Size", style="green")
@@ -47,7 +43,9 @@ class Dump:
                 if obj.IsValid and not obj.IsFree:
                     if any(f.lower() in obj.ToString().lower() for f in filter_):
                         object_table.add_row(
-                            hex(obj.Address), str(obj.Size), obj.ToString().split()[0]
+                            hex(obj.Address),
+                            str(obj.Size),
+                            obj.ToString().rsplit(maxsplit=1)[0],
                         )
         self.console.print(object_table, highlight=True)
 
@@ -67,10 +65,6 @@ class Dump:
             self.console.print("[bold red] No runtime loaded! Load a dump first!")
             return
 
-        if not self.runtime.Heap.CanWalkHeap:
-            self.console.print("[bold red]ERROR: Cannot walk heap![/]")
-            return
-
         address = int(address, 16)
         obj = self.runtime.Heap.GetObject(address)
 
@@ -88,7 +82,7 @@ class Dump:
 
             output = orjson.dumps(output, default=lambda x: repr(x))
             if save:
-                filename = f"{self.ctx.target_friendly_name}_{address}_{time.strftime('%Y%m%d-%H%M%S')}.json"
+                filename = f"{self.ctx.target_friendly_name}_{hex(address)}_{time.strftime('%Y%m%d-%H%M%S')}.json"
                 with open(filename, "wb") as save_file:
                     save_file.write(output)
                 self.console.print(f"[green bold]Output saved to {filename}")
@@ -125,3 +119,24 @@ class Dump:
             )
         except:
             pass
+
+    @command
+    @argument(
+        "types",
+        type=List[str],
+        description="Dump objects by type",
+        choices=context.get_context().available_obj_types,
+    )
+    @argument("save", type=bool, description="Save output to disk")
+    def type_(self, types: List[str], save: bool = False) -> None:
+        """Dumps the objects on the heap"""
+
+        if not self.ctx.runtime:
+            self.console.print("[bold red] No runtime loaded! Load a dump first!")
+            return
+
+        for segment in self.runtime.Heap.Segments:
+            for obj in segment.EnumerateObjects():
+                if obj.IsValid and not obj.IsFree:
+                    if any(_ == str(obj.Type) for _ in types):
+                        self.obj(hex(obj.Address), save)

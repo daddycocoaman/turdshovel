@@ -1,9 +1,8 @@
 import sys
 
-from nubia import Nubia, Options
+from nubia import Nubia
 
-import turdshovel.commands
-
+from .constants import COMMAND_PACKAGES, NUBIA_OPTIONS
 from .plugin import TurdshovelPlugin
 
 
@@ -12,8 +11,8 @@ def init():
 
     shell = Nubia(
         name="Turdshovel",
-        command_pkgs=turdshovel.commands,
+        command_pkgs=COMMAND_PACKAGES,
         plugin=plugin,
-        options=Options(persistent_history=True, auto_execute_single_suggestions=False),
+        options=NUBIA_OPTIONS,
     )
     sys.exit(shell.run())
