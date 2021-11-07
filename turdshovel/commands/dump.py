@@ -1,4 +1,5 @@
 import time
+from collections import Counter
 from typing import List
 
 import orjson
@@ -47,6 +48,58 @@ class Dump:
                             str(obj.Size),
                             obj.ToString().rsplit(maxsplit=1)[0],
                         )
+        self.console.print(object_table, highlight=True)
+
+    @command
+    @argument(
+        "sort",
+        type=str,
+        choices=["count", "object", "none"],
+        description="Sort output by count or object",
+    )
+    @argument(
+        "reverse",
+        type=bool,
+        description="Reverse sorting output. Only used with sort argument.",
+    )
+    @argument(
+        "filter_", type=List[str], name="filter", description="Filter objects by string"
+    )
+    def stat(
+        self, filter_: List[str] = ["."], sort: str = "none", reverse: bool = False
+    ) -> None:
+        """Dumps the number of each object on the heap"""
+
+        counter = Counter()
+        if not self.ctx.runtime:
+            self.console.print("[bold red] No runtime loaded! Load a dump first!")
+            return
+
+        for segment in self.runtime.Heap.Segments:
+            for obj in segment.EnumerateObjects():
+                if obj.IsValid and not obj.IsFree:
+                    if any(f.lower() in obj.ToString().lower() for f in filter_):
+                        counter.update([str(obj.Type)])
+
+        if sort == "object":
+            counter = (
+                dict(sorted(counter.items(), reverse=True))
+                if reverse
+                else dict(sorted(counter.items()))
+            )
+        elif sort == "count":
+            counter = (
+                dict(reversed(counter.most_common()))
+                if reverse
+                else dict(counter.most_common())
+            )
+
+        object_table = Table(border_style="#8B4513")
+        object_table.add_column("Count", style="cyan")
+        object_table.add_column("Object", style="yellow", overflow="fold")
+
+        for k, v in counter.items():
+            object_table.add_row(str(v), k)
         self.console.print(object_table, highlight=True)
 
     @command
