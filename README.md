@@ -41,15 +41,16 @@ If your Pipx install was done with different version: ```pipx install --python <
 
 Turdshovel uses [Nubia](https://github.com/facebookincubator/python-nubia) as its framework for an interactive CLI.
 
-| Command   | Arguments                                                                                                                   | Description                           |
-| :-------- | :-------------------------------------------------------------------------------------------------------------------------- | :------------------------------------ |
-| load      |                                                                                                                             | Loads a dump for a session            |
-| dump heap | **filter** - Filter objects by strings                                                                                      | Lists objects on the heap             |
-| dump obj  | **address** - Address of object to dump<br>**save** - Save ouput to disk                                                    | Dumps object on heap by address       |
-| dump mem  | **address** - Address of memory to read<br>**length** - Length of bytes to read                                             | Dumps the memory in bytes at location |
-| dump stat | **filter** - Filter objects by strings<br>**sort** - Sort object by count or object<br>**reverse** - Reverse sorting output | Dumps the memory in bytes at location |
-| help      |                                                                                                                             | Show help                             |
-| exit      |                                                                                                                             | Exit                                  |
+| Command   | Arguments                                                                                                                   | Description                                |
+| :-------- | :-------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- |
+| load      |                                                                                                                             | Loads a dump for a session                 |
+| dump heap | **filter** - Filter objects by strings                                                                                      | Lists objects on the heap                  |
+| dump obj  | **address** - Address of object to dump<br>**save** - Save ouput to disk                                                    | Dumps object on heap by address            |
+| dump mem  | **address** - Address of memory to read<br>**length** - Length of bytes to read                                             | Dumps the memory in bytes at location      |
+| dump stat | **filter** - Filter objects by strings<br>**sort** - Sort object by count or object<br>**reverse** - Reverse sorting output | Dumps the count of each object on the heap |
+| dump type | **types** - Objects types                                                                                                   | Dumps the objects on the heap by type      |
+| help      |                                                                                                                             | Show help                                  |
+| exit      |                                                                                                                             | Exit                                       |
 
 ---
 ##  Commands
@@ -100,6 +101,16 @@ Prints the bytes at the location specified for the amount of bytes specified. Th
 Prints the count of each type of object. You can optionally filter the type using `filter=` and can sort the output by count or object using `sort=`.
 
 <p align='center'><img src='https://github.com/daddycocoaman/turdshovel/raw/main/docs/images/dumpstat.png' alt='dump stat'/></p>
+
+
+</details>
+
+<details>
+<summary>dump type</summary>
+
+Dumps all objects of specific types. **THIS CAN BE DANGEROUS** so if you suspect a type might have a large amount of output, use "save=True" to write everything to disk. 
+
+<p align='center'><img src='https://github.com/daddycocoaman/turdshovel/raw/main/docs/images/dumptype.png' alt='dump type'/></p>
 
 
 </details>

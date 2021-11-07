@@ -68,7 +68,7 @@ class Dump:
     def stat(
         self, filter_: List[str] = ["."], sort: str = "none", reverse: bool = False
     ) -> None:
-        """Dumps the number of each object on the heap"""
+        """Dumps the count of each object on the heap"""
 
         counter = Counter()
         if not self.ctx.runtime:
@@ -182,7 +182,7 @@ class Dump:
     )
     @argument("save", type=bool, description="Save output to disk")
     def type_(self, types: List[str], save: bool = False) -> None:
-        """Dumps the objects on the heap"""
+        """Dumps the objects on the heap by type"""
 
         if not self.ctx.runtime:
             self.console.print("[bold red] No runtime loaded! Load a dump first!")
