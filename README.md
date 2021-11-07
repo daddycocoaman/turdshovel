@@ -41,14 +41,15 @@ If your Pipx install was done with different version: ```pipx install --python <
 
 Turdshovel uses [Nubia](https://github.com/facebookincubator/python-nubia) as its framework for an interactive CLI.
 
-| Command   | Arguments                                                                       | Description                           |
-| :-------- | :------------------------------------------------------------------------------ | :------------------------------------ |
-| load      |                                                                                 | Loads a dump for a session            |
-| dump heap | **filter** - Filter objects by strings                                          | Lists objects on the heap             |
-| dump obj  | **address** - Address of object to dump<br>**save** - Save ouput to disk        | Dumps object on heap by address       |
-| dump mem  | **address** - Address of memory to read<br>**length** - Length of bytes to read | Dumps the memory in bytes at location |
-| help      |                                                                                 | Show help                             |
-| exit      |                                                                                 | Exit                                  |
+| Command   | Arguments                                                                                                                   | Description                           |
+| :-------- | :-------------------------------------------------------------------------------------------------------------------------- | :------------------------------------ |
+| load      |                                                                                                                             | Loads a dump for a session            |
+| dump heap | **filter** - Filter objects by strings                                                                                      | Lists objects on the heap             |
+| dump obj  | **address** - Address of object to dump<br>**save** - Save ouput to disk                                                    | Dumps object on heap by address       |
+| dump mem  | **address** - Address of memory to read<br>**length** - Length of bytes to read                                             | Dumps the memory in bytes at location |
+| dump stat | **filter** - Filter objects by strings<br>**sort** - Sort object by count or object<br>**reverse** - Reverse sorting output | Dumps the memory in bytes at location |
+| help      |                                                                                                                             | Show help                             |
+| exit      |                                                                                                                             | Exit                                  |
 
 ---
 ##  Commands
@@ -89,6 +90,16 @@ Similar to the dump obj command via [SOS](https://docs.microsoft.com/en-us/dotne
 Prints the bytes at the location specified for the amount of bytes specified. This is useful when objects point to locations in memory that are not objects, such as encrypted data, or just seeing what is around any given memory address. The example shows a simple string which you could find with the strings command but there are better use cases, specifically with pointers!
 
 <p align='center'><img src='https://github.com/daddycocoaman/turdshovel/raw/main/docs/images/loadcommand.png' alt='dump mem'/></p>
+
+
+</details>
+
+<details>
+<summary>dump stat</summary>
+
+Prints the count of each type of object. You can optionally filter the type using `filter=` and can sort the output by count or object using `sort=`.
+
+<p align='center'><img src='https://github.com/daddycocoaman/turdshovel/raw/main/docs/images/dumpstat.png' alt='dump stat'/></p>
 
 
 </details>
