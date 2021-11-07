@@ -1,6 +1,8 @@
-TITLE_ASCII = """
+import turdshovel.commands
+from nubia import Options
 
-"""
+COMMAND_PACKAGES = turdshovel.commands
+NUBIA_OPTIONS = Options(persistent_history=True, auto_execute_single_suggestions=False)
 
 TITLE_ASCII = """
                                                        ▄████▓▄⌐

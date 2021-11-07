@@ -272,11 +272,14 @@ def parse_obj(runtime, obj, console) -> Dict:
     visited_objects = {}
 
     try:
-        for field in obj.Type.Fields:
-            field_name = _remove_backing_field_string(field.Name)
-            output[field_name] = _iter_field(runtime, obj, field, visited_objects)
+        field_data = _convert_basic_fields(obj)
 
-        return output
+        if not field_data:
+            for field in obj.Type.Fields:
+                field_name = _remove_backing_field_string(field.Name)
+                output[field_name] = _iter_field(runtime, obj, field, visited_objects)
+
+        return field_data or output
     except RecursionError:
         console.print_exception(show_locals=True)
         console.print(
