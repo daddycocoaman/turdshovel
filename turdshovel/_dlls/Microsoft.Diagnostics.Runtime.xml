@@ -167,6 +167,75 @@
             <param name="right">Second <see cref="T:Microsoft.Diagnostics.Runtime.ClrArray"/> to compare.</param>
             <returns><see langword="true"/> if the value of <paramref name="left"/> is different from the value of <paramref name="right"/>; <see langword="false"/> otherwise.</returns>
         </member>
+        <member name="T:Microsoft.Diagnostics.Runtime.ClrDelegate">
+            <summary>
+            Represents a delegate instance in the target process.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrDelegate.#ctor(Microsoft.Diagnostics.Runtime.ClrObject)">
+            <summary>
+            Constructs a <see cref="T:Microsoft.Diagnostics.Runtime.ClrDelegate"/> from a <see cref="T:Microsoft.Diagnostics.Runtime.ClrObject"/>.  Note that obj.IsDelegate
+            must be true.
+            </summary>
+            <param name="obj">A delegate object</param>
+        </member>
+        <member name="P:Microsoft.Diagnostics.Runtime.ClrDelegate.HasMultipleTargets">
+            <summary>
+            Returns whether this delegate has multiple targets or not.  If this method returns true then it is expected
+            that <see cref="M:Microsoft.Diagnostics.Runtime.ClrDelegate.GetDelegateTarget"/> will return <see langword="null"/> and you should use
+            <see cref="M:Microsoft.Diagnostics.Runtime.ClrDelegate.EnumerateDelegateTargets"/> instead.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Diagnostics.Runtime.ClrDelegate.Object">
+            <summary>
+            The actual object represented by this ClrDelegate instance.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrDelegate.GetDelegateTarget">
+            <summary>
+            Returns a the single delegate target of the 
+            </summary>
+            <returns></returns>
+            <exception cref="T:System.InvalidOperationException">If this object is not a delegate we throw</exception>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrDelegate.EnumerateDelegateTargets">
+            <summary>
+            Enumerates all delegate targets of this delegate.  If called on a MulitcastDelegate, this will enumerate all
+            targets that will be called when this delegate is invoked.  If called on a non-MulticastDelegate, this will
+            enumerate the value of GetDelegateTarget.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Diagnostics.Runtime.ClrDelegateTarget">
+            <summary>
+            The "target" method and object that a delegate points to.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.#ctor(Microsoft.Diagnostics.Runtime.ClrDelegate,Microsoft.Diagnostics.Runtime.ClrObject,Microsoft.Diagnostics.Runtime.ClrMethod)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="del">The parent delgate that this target came from.</param>
+            <param name="target">The "target" of this delegate.</param>
+            <param name="method">The method this delegate will call.</param>
+        </member>
+        <member name="P:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.Parent">
+            <summary>
+            The parent delegate that this target comes from.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.TargetObject">
+            <summary>
+            The object that this delegate is targeted to.  If <see cref="P:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.Method"/> is an instance method,
+            this will point to the <see langword="this"/> pointer of that object.  If <see cref="P:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.Method"/>
+            is a static method, this will be a pointer to a delegate.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.Method">
+            <summary>
+            The method that would be called when <see cref="P:Microsoft.Diagnostics.Runtime.ClrDelegateTarget.Parent"/> is invoked in the target process.
+            </summary>
+        </member>
         <member name="T:Microsoft.Diagnostics.Runtime.ClrDiagnosticsException">
             <summary>
             Exception thrown by Microsoft.Diagnostics.Runtime unless there is a more appropriate
@@ -1296,6 +1365,15 @@
             </summary>
             <param name="clrObject">An object to get address of.</param>
         </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.TryReadObjectField(System.String,Microsoft.Diagnostics.Runtime.ClrObject@)">
+            <summary>
+            Tries to obtain the given object field from this ClrObject.  Returns false if the field wasn't found or if
+            the underlying type was not an object.
+            </summary>
+            <param name="fieldName">The name of the field to retrieve.</param>
+            <param name="result">True if the field was found and the field's type is an object.  Returns false otherwise.</param>
+            <returns>A ClrObject of the given field.</returns>
+        </member>
         <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.ReadObjectField(System.String)">
             <summary>
             Gets the given object reference field from this ClrObject.
@@ -1305,20 +1383,38 @@
             <exception cref="T:System.ArgumentException">The given field does not exist in the object.</exception>
             <exception cref="T:System.InvalidOperationException"><see cref="P:Microsoft.Diagnostics.Runtime.ClrObject.IsNull"/> is <see langword="true"/>.</exception>
         </member>
-        <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.ReadValueTypeField(System.String)">
-            <summary>
-            </summary>
-            <param name="fieldName"></param>
-            <returns></returns>
-        </member>
         <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.ReadField``1(System.String)">
             <summary>
-            Gets the value of a primitive field.  This will throw an InvalidCastException if the type parameter
-            does not match the field's type.
+            Gets the value of a primitive field.
             </summary>
             <typeparam name="T">The type of the field itself.</typeparam>
             <param name="fieldName">The name of the field.</param>
             <returns>The value of this field.</returns>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.TryReadField``1(System.String,``0@)">
+            <summary>
+            Attempts to read the value of a primitive field.  This method does no type checking on whether T
+            matches the field's type.
+            </summary>
+            <typeparam name="T">The type of the field itself.</typeparam>
+            <param name="fieldName">The name of the field.</param>
+            <param name="result">The value of the missing field.</param>
+            <returns>True if we obtained this field and read its value, false otherwise.</returns>
+        </member>
+        <member name="P:Microsoft.Diagnostics.Runtime.ClrObject.IsDelegate">
+            <summary>
+            Returns true if this object is a delegate, false otherwise.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.AsDelegate">
+            <summary>
+            Returns this object in a <see cref="T:Microsoft.Diagnostics.Runtime.ClrDelegate"/> view.  Note it is only valid to call
+            <see cref="M:Microsoft.Diagnostics.Runtime.ClrObject.AsDelegate"/> if the underlying object is a subclass of System.Delegate.  You
+            can check <see cref="P:Microsoft.Diagnostics.Runtime.ClrObject.IsDelegate"/> before calling <see cref="M:Microsoft.Diagnostics.Runtime.ClrObject.AsDelegate"/>, but that is
+            not required as long as you are sure the object is a delegate or should be treated like
+            one.
+            </summary>
+            <returns>Returns this object in a <see cref="T:Microsoft.Diagnostics.Runtime.ClrDelegate"/> view.</returns>
         </member>
         <member name="M:Microsoft.Diagnostics.Runtime.ClrObject.ReadStringField(System.String,System.Int32)">
             <summary>
@@ -3305,6 +3401,15 @@
             </summary>
             <param name="osThreadId"></param>
             <returns></returns>
+        </member>
+        <member name="M:Microsoft.Diagnostics.Runtime.MacOS.MachOCoreReader.Microsoft#Diagnostics#Runtime#IExportReader#TryGetSymbolAddress(System.UInt64,System.String,System.UInt64@)">
+            <summary>
+            Returns the address of a module export symbol if found
+            </summary>
+            <param name="baseAddress">module base address</param>
+            <param name="name">symbol name (without the module name prepended)</param>
+            <param name="address">address returned</param>
+            <returns>true if found</returns>
         </member>
         <member name="M:Microsoft.Diagnostics.Runtime.MinidumpReader.Microsoft#Diagnostics#Runtime#IExportReader#TryGetSymbolAddress(System.UInt64,System.String,System.UInt64@)">
             <summary>
