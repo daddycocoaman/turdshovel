@@ -3,7 +3,7 @@ from typing import Dict
 
 import System
 from Microsoft.Diagnostics.Runtime import ClrElementType
-from rich import inspect, print
+from rich import inspect
 
 
 def _remove_backing_field_string(name):
@@ -264,8 +264,8 @@ def _iter_field(runtime, obj, field, visited_objects, is_dict=False):
     return field_data
 
 
-@lru_cache
-def parse_obj(runtime, obj, console) -> Dict:
+@lru_cache(maxsize=2048)
+def parse_obj(runtime, obj) -> Dict:
     output = {}
 
     # Helps with recursion.
@@ -281,9 +281,8 @@ def parse_obj(runtime, obj, console) -> Dict:
 
         return field_data or output
     except RecursionError:
-        console.print_exception(show_locals=True)
-        console.print(
+        raise RecursionError(
             f"Recursion error happened in field {field.Name}. Logic needs to be fixed to handle this type"
         )
-    except Exception:
-        console.print_exception()
+    except Exception as e:
+        raise e

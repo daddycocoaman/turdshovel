@@ -1,5 +1,5 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 NUGET_DIR = Path(__file__).parents[1] / ".nuget"
 TURDSHOVEL_DLLS = Path(__file__).parents[1] / "turdshovel/_dlls"
